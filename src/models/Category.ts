@@ -3,7 +3,8 @@ import{
   Column,
   PrimaryGeneratedColumn,
   CreateDateColumn,
-  UpdateDateColumn
+  UpdateDateColumn,
+  Timestamp
 } from "typeorm";
 
 @Entity('categories')
@@ -16,10 +17,10 @@ class Category {
   title: string;
 
   @CreateDateColumn()
-  created_at: Date;
+  created_at: Timestamp;
 
   @UpdateDateColumn()
-  updated_at: Date;
+  updated_at: Timestamp;
 }
 
 export default Category;
