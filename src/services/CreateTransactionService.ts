@@ -1,47 +1,51 @@
-import AppError from '../errors/AppError';
-import { getCustomRepository } from 'typeorm';
+//import AppError from '../errors/AppError';
+import { getCustomRepository, getRepository } from 'typeorm';
 
 import Transaction from '../models/Transaction';
-import Category from '../models/Category';
 import TransactionRepository from '../repositories/TransactionsRepository';
-import CategoriesRepository from '../repositories/CategoriesRepository';
 import { request } from 'express';
+import Category from '../models/Category';
 
-
-interface Request{
+interface Request {
   title: string;
-  type:  'income' | 'outcome';
+  type: 'income' | 'outcome';
   value: number;
   category: string;
 }
 
 class CreateTransactionService {
-  public async execute({title, type, value, category}: Request): Promise<Transaction> {
-
+  public async execute({
+    title,
+    type,
+    value,
+    category,
+  }: Request): Promise<Transaction> {
     const transactionsRepository = getCustomRepository(TransactionRepository);
-    const categoriesRepository = getCustomRepository(CategoriesRepository);
+    const categoriesRepository = getRepository(Category);
 
-    const findCategoryExist = await categoriesRepository.findOne({where: {title: category}});
+    /** Verificando se já existe a categoria informada da transação e
+     * armazenando em um variável let, podendo ser alterada fora do escopo **/
+    let objCategory = await categoriesRepository.findOne({
+      where: { title: category },
+    });
 
-    let category_id;
-    if(!findCategoryExist){
-      const objCategory = categoriesRepository.create({
-          title: category,
+    if (!objCategory) {
+      objCategory = categoriesRepository.create({
+        title: category,
       });
+
       await categoriesRepository.save(objCategory);
-      category_id = objCategory.id;
-    }else{
-      category_id = findCategoryExist.id;
     }
 
     const transaction = transactionsRepository.create({
       title,
       type,
       value,
-      category_id
+      category: objCategory,
     });
 
     await transactionsRepository.save(transaction);
+
     return transaction;
   }
 }
